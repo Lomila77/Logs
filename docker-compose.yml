@@ -1,0 +1,48 @@
+networks:
+  opensearch-network:
+    driver: bridge
+
+services:
+  opensearch-node:
+    image: opensearchproject/opensearch:2.11.1
+    container_name: opensearch-node
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    networks:
+      - opensearch-network
+    
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - opensearch-network
+    depends_on:
+      - opensearch-node
+    
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    networks:
+      - opensearch-network
+    depends_on:
+      - backend
+    environment:
+      - HOST=0.0.0.0
+
+volumes:
+  opensearch-data:
