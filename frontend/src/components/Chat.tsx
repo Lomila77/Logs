@@ -1,4 +1,14 @@
-const Chat = ({ messages }) => {
+interface Message {
+  from: "user" | "server" | "ia";
+  text: string;
+  timestamp?: string;
+}
+
+interface ChatProps {
+  messages: Message[];
+}
+
+const Chat = ({ messages }: ChatProps) => {
     return (
         <div className="min-h-0">
             {messages.map((msg, idx) => (

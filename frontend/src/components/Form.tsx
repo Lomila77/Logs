@@ -1,21 +1,27 @@
 import { useEffect, useRef, useState } from "react";
+import type { FormEvent, ChangeEvent, KeyboardEvent } from "react";
 import Cadre from "./Cadre";
 import Chat from "./Chat";
 import { SendHorizonal } from "lucide-react";
 
+interface Message {
+    from: "user" | "server";
+    text: string;
+    timestamp: string;
+}
 
 const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws";
 
 function Form() {
-    const [message, setMessage] = useState("");
-    const [messages, setMessages] = useState([]);
-    const [isConnected, setIsConnected] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState<string>("");
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [isConnected, setIsConnected] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     
-    const ws = useRef(null);
+    const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
-        const connectWebSocket = () => {
+        const connectWebSocket = (): void => {
             console.log("Connexion WebSocket à", WS_URL);
             ws.current = new WebSocket(WS_URL);
             
@@ -24,7 +30,7 @@ function Form() {
                 setIsConnected(true);
             };
             
-            ws.current.onmessage = (event) => {
+            ws.current.onmessage = (event: MessageEvent) => {
                 try {
                     const data = JSON.parse(event.data);
                     if (data.text) {
@@ -40,7 +46,7 @@ function Form() {
                 setIsLoading(false);
             };
             
-            ws.current.onerror = (error) => {
+            ws.current.onerror = (error: Event) => {
                 console.error("Erreur WebSocket:", error);
                 setIsConnected(false);
                 setIsLoading(false);
@@ -64,7 +70,7 @@ function Form() {
         };
     }, []);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
         
         if (!message.trim()) return;
@@ -91,14 +97,14 @@ function Form() {
         }
     };
 
-    const handleChange = (e) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
         setMessage(e.target.value);
     };
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            handleSubmit(e);
+            handleSubmit(e as any);
         }
     };
 

@@ -1,7 +1,13 @@
+import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 
-const Cadre = ({ size, componentChildren }) => {
-  const containerRef = useRef(null);
+interface CadreProps {
+  size: "text" | "msg";
+  componentChildren: ReactNode;
+}
+
+const Cadre = ({ size, componentChildren }: CadreProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = containerRef.current;
