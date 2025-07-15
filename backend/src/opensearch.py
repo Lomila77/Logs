@@ -43,7 +43,8 @@ class Opensearch_Client:
                     "bool": {
                         "must": []
                     }
-                }
+                },
+                "sort": [{"timestamp": {"order": "desc"}}]
             }
             if search.level is not None:
                 query["query"]["bool"]["must"].append(
