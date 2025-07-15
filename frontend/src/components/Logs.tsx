@@ -79,9 +79,14 @@ function Logs() {
                                         </span>
                                     )}
                                 </div>
-                                <span className="text-xs text-gray-500">
-                                    {new Date(log.timestamp).toLocaleString('fr-FR')}
-                                </span>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs text-gray-500">
+                                        {new Date(log.timestamp).toLocaleString('fr-FR')}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                        ID: {log.id}
+                                    </span>
+                                </div>
                             </div>
                             <p className="text-gray-800 text-sm leading-relaxed">
                                 {log.message}
