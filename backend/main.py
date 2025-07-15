@@ -77,8 +77,7 @@ def create_log(log: Log):
 @app.get("/logs/search")
 def search_logs(query: Query):
     try:
-        logs = app.state.opensearch_client.search_log(query)
-        return [LogResponse(**log.model_dump()) for log in logs]
+        return app.state.opensearch_client.search_log(query)
     except Exception as e:
         logger.error(f"Error: {e}")
         return {"error": str(e)}

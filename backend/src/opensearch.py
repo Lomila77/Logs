@@ -45,20 +45,21 @@ class Opensearch_Client:
                     }
                 }
             }
-            if "level" in search:
+            if search.level is not None:
                 query["query"]["bool"]["must"].append(
                     {"term": {"level.keyword": search.level}})
-            if "service" in search:
+            if search.service is not None:
                 query["query"]["bool"]["must"].append(
                     {"term": {"service.keyword": search.service}})
-            if "message" in search:
+            if search.message is not None:
                 query["query"]["bool"]["must"].append(
-                    {"match": {"message": search.message}})
+                    {"wildcard": {"message": f"*{search.message}*"}}
+                )
             return query
         query = build_query(search)
-        response = self.client.search(body=query)
+        response = self.client.search(body=query, index="logs-*")
         return [
-            LogResponse(**log["_source"])
+            LogResponse(**log["_source"], id=log["_id"])
             for log in response["hits"]["hits"]
         ]
 
