@@ -2,3 +2,4 @@ uvicorn
 fastapi[standard]
 opensearch-py
 websockets
+python-dotenv
