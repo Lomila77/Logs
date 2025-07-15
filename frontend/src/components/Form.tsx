@@ -1,107 +1,68 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ChangeEvent, KeyboardEvent } from "react";
-import Cadre from "./Cadre";
-import Chat from "./Chat";
+import axios from "axios";
 import { SendHorizonal } from "lucide-react";
 
-interface Message {
-    from: "user" | "server";
-    text: string;
+interface Log {
     timestamp: string;
+    level: string;
+    message: string;
+    service: string;
 }
 
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 function Form() {
-    const [message, setMessage] = useState<string>("");
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [isConnected, setIsConnected] = useState<boolean>(false);
+    const [log, setLog] = useState<Log>({
+        timestamp: "",
+        level: "",
+        message: "",
+        service: "",
+    });
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    
-    const ws = useRef<WebSocket | null>(null);
 
-    useEffect(() => {
-        const connectWebSocket = (): void => {
-            console.log("Connexion WebSocket à", WS_URL);
-            ws.current = new WebSocket(WS_URL);
-            
-            ws.current.onopen = () => {
-                console.log("WebSocket connecté");
-                setIsConnected(true);
-            };
-            
-            ws.current.onmessage = (event: MessageEvent) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.text) {
-                        setMessages(prev => [...prev, { 
-                            from: "server", 
-                            text: data.text,
-                            timestamp: new Date().toISOString()
-                        }]);
-                    }
-                } catch (error) {
-                    console.error("Erreur parsing message:", error);
-                }
-                setIsLoading(false);
-            };
-            
-            ws.current.onerror = (error: Event) => {
-                console.error("Erreur WebSocket:", error);
-                setIsConnected(false);
-                setIsLoading(false);
-            };
-            
-            ws.current.onclose = () => {
-                console.log("WebSocket déconnecté");
-                setIsConnected(false);
-                setIsLoading(false);
-            };
-        };
 
-        connectWebSocket();
-
-        return () => {
-            if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-                console.log("Fermeture WebSocket...");
-                ws.current.close();
-            }
-            ws.current = null;
-        };
-    }, []);
-
-    const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
         
-        if (!message.trim()) return;
-        if (!isConnected || !ws.current) {
-            alert("WebSocket non connecté");
-            return;
-        }
-
+        if (!log.message.trim()) return;
         setIsLoading(true);
         
         try {
-            setMessages(prev => [...prev, { 
-                from: "user", 
-                text: message,
-                timestamp: new Date().toISOString()
-            }]);
-            
-            ws.current.send(JSON.stringify({ text: message }));
-            
-            setMessage("");
+            const userLog: Log = {
+                timestamp: new Date().toISOString(),
+                level: log.level,
+                message: log.message,
+                service: log.service,
+            }
+            setLog(userLog);
+
+            const response = await axios.post(`${API_URL}/logs`, userLog);
+            console.log(response.data);
         } catch (error) {
             console.error("Erreur envoi message:", error);
             setIsLoading(false);
         }
     };
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
-        setMessage(e.target.value);
+    const handleChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
+        setLog(prev => ({ ...prev, message: e.target.value }));
     };
 
-    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
+    const handleRadioChange = (e: ChangeEvent<HTMLInputElement>): void => {
+        setLog(prev => ({ ...prev, level: e.target.value }));
+    };
+
+    const handleServiceChange = (e: ChangeEvent<HTMLInputElement>): void => {
+        setLog(prev => ({ ...prev, service: e.target.value }));
+    };
+
+    const handleDateChange = (e: ChangeEvent<HTMLInputElement>): void => {
+        setLog(prev => ({ ...prev, timestamp: e.target.value }));
+    };
+
+    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>): void => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSubmit(e as any);
@@ -109,44 +70,125 @@ function Form() {
     };
 
     return (
-        <div className={`min-h-0 flex-1 pb-4 flex flex-col ${
-            messages.length > 0 ? "justify-end" : "justify-center gap-6 max-w-4xl self-center"
-        }`}>
-            <Cadre size={"text"} componentChildren={<Chat messages={messages} />}/>
-            <div className="m-4 bg-white/70 border-gray-400 rounded-3xl drop-shadow-xl">
-                <form
-                    onSubmit={handleSubmit}
-                    className="flex items-center gap-2 p-4 sticky bottom-0 w-full"
-                >
-                    <input
-                        type="text"
-                        value={message}
+        <div className="m-4 bg-white/70 border-gray-400 rounded-3xl drop-shadow-xl">
+            <form
+                onSubmit={handleSubmit}
+                className="flex flex-col gap-4 p-6"
+            >
+                <div className="flex gap-4 items-center">
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-medium text-gray-700">Date</label>
+                        <input
+                            type="date"
+                            value={log.timestamp}
+                            onChange={handleDateChange}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    
+                    <div className="flex flex-col gap-1 flex-1">
+                        <label className="text-sm font-medium text-gray-700">Service</label>
+                        <input
+                            type="text"
+                            value={log.service}
+                            onChange={handleServiceChange}
+                            placeholder="Nom du service"
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-gray-700">Niveau de log</label>
+                    <div className="flex gap-6">
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="radio"
+                                id="info"
+                                name="level"
+                                value="INFO"
+                                onChange={handleRadioChange}
+                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label htmlFor="info" className="text-sm font-medium text-gray-700">INFO</label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="radio"
+                                id="error"
+                                name="level"
+                                value="ERROR"
+                                onChange={handleRadioChange}
+                                className="w-4 h-4 text-red-600 focus:ring-red-500"
+                            />
+                            <label htmlFor="error" className="text-sm font-medium text-gray-700">ERROR</label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="radio"
+                                id="warn"
+                                name="level"
+                                value="WARN"
+                                onChange={handleRadioChange}
+                                className="w-4 h-4 text-yellow-600 focus:ring-yellow-500"
+                            />
+                            <label htmlFor="warn" className="text-sm font-medium text-gray-700">WARN</label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="radio"
+                                id="debug"
+                                name="level"
+                                value="DEBUG"
+                                onChange={handleRadioChange}
+                                className="w-4 h-4 text-gray-600 focus:ring-gray-500"
+                            />
+                            <label htmlFor="debug" className="text-sm font-medium text-gray-700">DEBUG</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <label className="text-sm font-medium text-gray-700">Message</label>
+                    <textarea
+                        value={log.message}
                         onChange={handleChange}
                         onKeyDown={handleKeyDown}
                         placeholder="Votre message de log..."
-                        disabled={!isConnected || isLoading}
-                        className="flex-1 px-4 py-2 h-10 focus:outline-none disabled:opacity-50"
+                        disabled={isLoading}
+                        rows={3}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 resize-none"
                     />
-                    
+                </div>
+
+                {/* Ligne 4: Bouton d'envoi */}
+                <div className="flex justify-end">
                     <button
                         type="submit"
-                        disabled={!isConnected || isLoading || !message.trim()}
+                        disabled={isLoading || !log.message.trim()}
                         className="
                             bg-gradient-to-r from-[var(--primary)] to-emerald-400
-                            text-white px-4 py-2 rounded-full disabled:opacity-50
+                            text-white px-6 py-3 rounded-lg disabled:opacity-50
                             hover:brightness-110 active:scale-95
                             transition-all duration-200
-                            flex items-center justify-center
+                            flex items-center gap-2
+                            font-medium
                         "
                     >
-                        <SendHorizonal
-                            size={28}
-                            strokeWidth={1.75}
-                            className="hover:translate-x-1 transition-transform"
-                        />
+                        {isLoading ? (
+                            <>
+                                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                                Envoi...
+                            </>
+                        ) : (
+                            <>
+                                <SendHorizonal size={20} strokeWidth={1.75} />
+                                Envoyer le log
+                            </>
+                        )}
                     </button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     );
 }
