@@ -10,7 +10,7 @@ interface Log {
 
 const WS_URL = import.meta.env.VITE_WS_URL;
 
-function Logs() {
+function HistoryLogs() {
     const [logs, setLogs] = useState<Log[]>([]);
     
     const ws = useRef<WebSocket | null>(null);
@@ -104,4 +104,4 @@ function Logs() {
     );
 }
 
-export default Logs;
+export default HistoryLogs;
