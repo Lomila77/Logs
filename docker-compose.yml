@@ -51,8 +51,8 @@ services:
     depends_on:
       backend:
         condition: service_started
-    environment:
-      - HOST=0.0.0.0
+    env_file:
+      - ./frontend/.env
 
 volumes:
   opensearch-data:

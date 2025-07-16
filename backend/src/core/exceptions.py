@@ -1,6 +1,6 @@
 class OpenSearchException(Exception):
     def __init__(self, operation: str, error: Exception):
-        self.message = f"OpenSearch {operation} error: {error}"
+        self.message: str = f"OpenSearch {operation} error: {error}"
         super().__init__(self.message)
         try:
             from src.core.logger import logger
@@ -11,7 +11,7 @@ class OpenSearchException(Exception):
 
 class LogException(Exception):
     def __init__(self, operation: str, error: Exception):
-        self.message = f"Log {operation} error: {error}"
+        self.message: str = f"Log {operation} error: {error}"
         super().__init__(self.message)
         try:
             from src.core.logger import logger

@@ -27,8 +27,7 @@ def get_query(
 @router.get("/search")
 def search_logs(query: Query = Depends(get_query), request: Request = Request):
     try:
-        result = request.app.state.opensearch_client.search_log(query)
-        return result
+        return request.app.state.opensearch_client.search_log(query)
     except Exception as e:
         logger.error(f"Erreur lors de la recherche: {e}")
         return {"error": str(e)}
