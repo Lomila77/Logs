@@ -1,5 +1,5 @@
 
-import './style/style.css'
+import './styles/style.css'
 import Home from './pages/Home'
 import Background from './components/Background'
 
