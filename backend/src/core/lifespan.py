@@ -2,13 +2,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from opensearchpy import OpenSearch
 from src.opensearch import Opensearch_Client
-from src.logger import Logger
-from src.config import setup_logging, OPENSEARCH_CONFIG
+from src.core.logger import Logger, formatter, logger
+from src.core.config import OPENSEARCH_CONFIG
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    formatter, logger = setup_logging()
     opensearch_handler = None
 
     try:
