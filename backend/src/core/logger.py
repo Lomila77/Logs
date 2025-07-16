@@ -20,8 +20,13 @@ class Logger(Handler):
             message=record.getMessage(),
             service=record.name
         )
-        self.client.save_log(log)
-        print(log)
+
+        from src.core.exceptions import OpenSearchException
+        try:
+            self.client.save_log(log)
+            print(log)
+        except (OpenSearchException, Exception) as e:
+            print(f"Error: {e}")
 
 
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

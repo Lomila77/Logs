@@ -4,9 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.core.lifespan import lifespan
 from src.core.config import CORS_CONFIG
 from src.routers import websockets, service
+from src.core.error_handlers import register_error_handlers
 
 app = FastAPI(lifespan=lifespan)
 
+register_error_handlers(app)
 
 app.add_middleware(CORSMiddleware, **CORS_CONFIG)
 

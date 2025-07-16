@@ -1,6 +1,7 @@
 import asyncio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from src.core.logger import logger
+from src.core.exceptions import OpenSearchException
 
 router = APIRouter(tags=["websockets"])
 
@@ -10,10 +11,13 @@ async def last_logs(websocket: WebSocket):
     try:
         await websocket.accept()
         while True:
-            logs = websocket.app.state.opensearch_client.get_last_20_log()
-            await websocket.send_json([log.model_dump() for log in logs])
-            await asyncio.sleep(3)
+            try:
+                logs = websocket.app.state.opensearch_client.get_last_20_log()
+                await websocket.send_json([log.model_dump() for log in logs])
+                await asyncio.sleep(3)
+            except (Exception, OpenSearchException) as e:
+                logger.error(f"Error: {e}")
+                await websocket.send_json({"error": str(e)})
+                await asyncio.sleep(10)
     except WebSocketDisconnect:
         logger.info("Client disconnected")
-    except Exception as e:
-        logger.error(f"Error: {e}")
