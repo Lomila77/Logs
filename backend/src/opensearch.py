@@ -1,4 +1,3 @@
-
 from opensearchpy import OpenSearch
 from src.dto import Log, LogResponse, Query
 
@@ -38,6 +37,8 @@ class Opensearch_Client:
 
     def search_log(self, search: Query) -> list[LogResponse]:
         def build_query(search: Query) -> dict:
+            if search.is_empty():
+                return {}
             query = {
                 "query": {
                     "bool": {
@@ -46,18 +47,20 @@ class Opensearch_Client:
                 },
                 "sort": [{"timestamp": {"order": "desc"}}]
             }
-            if search.level is not None:
+            if search.level != "":
                 query["query"]["bool"]["must"].append(
                     {"term": {"level.keyword": search.level}})
-            if search.service is not None:
+            if search.service != "":
                 query["query"]["bool"]["must"].append(
                     {"term": {"service.keyword": search.service}})
-            if search.message is not None:
+            if search.message != "":
                 query["query"]["bool"]["must"].append(
                     {"wildcard": {"message": f"*{search.message}*"}}
                 )
             return query
         query = build_query(search)
+        if query == {}:
+            return []
         response = self.client.search(body=query, index="logs-*")
         return [
             LogResponse(**log["_source"], id=log["_id"])

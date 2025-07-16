@@ -1,12 +1,15 @@
 from pydantic import BaseModel, field_serializer
 import datetime
-from typing import Optional, Literal
+from typing import Literal
 
 
 class Query(BaseModel):
-    level: Optional[Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]] = None
-    message: Optional[str] = None
-    service: Optional[str] = None
+    level: Literal["", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = ""
+    message: str = ""
+    service: str = ""
+
+    def is_empty(self):
+        return self.level == "" and self.message == "" and self.service == ""
 
 
 class Log(BaseModel):
