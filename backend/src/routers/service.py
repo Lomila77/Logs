@@ -1,18 +1,13 @@
 from fastapi import APIRouter, Depends, Request
 from src.dto import Log, Query
 from typing import Literal
-from src.core.logger import logger
 
 router = APIRouter(prefix="/logs", tags=["logs"])
 
 
 @router.post("/")
 def create_log(log: Log, request: Request):
-    try:
-        return request.app.state.opensearch_client.save_log(log)
-    except Exception as e:
-        logger.error(f"Error: {e}")
-        return {"error": str(e)}
+    return request.app.state.opensearch_client.save_log(log)
 
 
 def get_query(
@@ -26,8 +21,4 @@ def get_query(
 
 @router.get("/search")
 def search_logs(query: Query = Depends(get_query), request: Request = Request):
-    try:
-        return request.app.state.opensearch_client.search_log(query)
-    except Exception as e:
-        logger.error(f"Erreur lors de la recherche: {e}")
-        return {"error": str(e)}
+    return request.app.state.opensearch_client.search_log(query)
