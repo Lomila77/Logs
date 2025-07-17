@@ -21,6 +21,7 @@ async def last_logs(websocket: WebSocket):
                     await asyncio.sleep(3)
                 else:
                     logger.warning("Client websocket disconnected")
+                    await asyncio.sleep(10)
             except (OpenSearchException) as e:
                 logger.error(f"Error: {e}")
     except WebSocketDisconnect as e:

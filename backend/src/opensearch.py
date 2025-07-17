@@ -41,10 +41,10 @@ class Opensearch_Client:
                 }
                 if search.level != "":
                     query["query"]["bool"]["must"].append(
-                        {"term": {"level.keyword": search.level}})
+                        {"term": {"level": search.level}})
                 if search.service != "":
                     query["query"]["bool"]["must"].append(
-                        {"term": {"service.keyword": search.service}})
+                        {"term": {"service": search.service}})
                 if search.message != "":
                     query["query"]["bool"]["must"].append(
                         {"wildcard": {"message": f"*{search.message}*"}}
